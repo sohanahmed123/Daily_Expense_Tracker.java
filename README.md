@@ -8,10 +8,12 @@ import java.util.*;
 class User implements Serializable {
     private String username;
     private String password;
+    private List<Expense> expenses; // User-specific expenses
 
     public User(String username, String password) {
         this.username = username;
         this.password = password;
+        this.expenses = new ArrayList<>();
     }
 
     public String getUsername() {
@@ -20,6 +22,10 @@ class User implements Serializable {
 
     public boolean validatePassword(String password) {
         return this.password.equals(password);
+    }
+
+    public List<Expense> getExpenses() {
+        return expenses;
     }
 }
 
@@ -36,10 +42,6 @@ class Expense implements Serializable {
         this.date = date;
     }
 
-    public double getAmount() {
-        return amount;
-    }
-
     @Override
     public String toString() {
         return "Date: " + date + ", Category: " + category + ", Description: " + description + ", Amount: $" + amount;
@@ -48,7 +50,6 @@ class Expense implements Serializable {
 
 class ExpenseManager {
     private List<User> users = new ArrayList<>();
-    private List<Expense> expenses = new ArrayList<>();
     private User loggedInUser = null;
 
     private static final String FILE_PATH = "expenses.dat";
@@ -104,11 +105,18 @@ class ExpenseManager {
         System.out.print("Enter date (yyyy-mm-dd): ");
         LocalDate date = LocalDate.parse(scanner.nextLine());
 
-        expenses.add(new Expense(category, description, amount, date));
+        Expense expense = new Expense(category, description, amount, date);
+        loggedInUser.getExpenses().add(expense); // Add to user-specific expenses
         System.out.println("Expense added successfully!");
     }
 
     public void viewExpenses() {
+        if (loggedInUser == null) {
+            System.out.println("Please login first!");
+            return;
+        }
+
+        List<Expense> expenses = loggedInUser.getExpenses();
         if (expenses.isEmpty()) {
             System.out.println("No expenses recorded yet.");
         } else {
@@ -131,7 +139,6 @@ class ExpenseManager {
     public void saveData() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
             oos.writeObject(users);
-            oos.writeObject(expenses);
             System.out.println("Data saved successfully!");
         } catch (IOException e) {
             System.out.println("Error saving data: " + e.getMessage());
@@ -142,7 +149,6 @@ class ExpenseManager {
     public void loadData() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
             users = (List<User>) ois.readObject();
-            expenses = (List<Expense>) ois.readObject();
             System.out.println("Data loaded successfully!");
         } catch (FileNotFoundException e) {
             System.out.println("No previous data found.");
@@ -152,7 +158,7 @@ class ExpenseManager {
     }
 }
 
-public class mainn {
+public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ExpenseManager expenseManager = new ExpenseManager();
@@ -203,9 +209,7 @@ public class mainn {
                 }
             }
 
-            if (!expenseManager.isLoggedIn()) {
-                expenseManager.saveData();
-            }
+            expenseManager.saveData(); // Save data after every operation
         }
     }
 
@@ -236,6 +240,7 @@ public class mainn {
         System.out.println("-".repeat(width));
     }
 }
+
 
 
 
