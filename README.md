@@ -1,4 +1,4 @@
-# Daily_Expense_Tracker.java
+# Main.java
 
 
 import java.io.*;
