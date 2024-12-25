@@ -52,11 +52,9 @@ class ExpenseManager {
     private User loggedInUser = null;
 
     private static final String FILE_PATH = "expenses.dat";
-    private static final String LAST_LOGGED_IN_FILE = "lastLoggedIn.dat";
 
     public ExpenseManager() {
         loadData();
-        loadLastLoggedInUser();
     }
 
     public void registerUser(Scanner scanner) {
@@ -80,7 +78,6 @@ class ExpenseManager {
         for (User user : users) {
             if (user.getUsername().equals(username) && user.validatePassword(password)) {
                 loggedInUser = user;
-                saveLastLoggedInUser();
                 System.out.println("Login successful!\nNow you can add expenses.");
                 return;
             }
@@ -153,30 +150,9 @@ class ExpenseManager {
             System.out.println("Error loading data: " + e.getMessage());
         }
     }
-
-    public void saveLastLoggedInUser() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(LAST_LOGGED_IN_FILE))) {
-            oos.writeObject(loggedInUser);
-        } catch (IOException e) {
-            System.out.println("Error saving last logged in user: " + e.getMessage());
-        }
-    }
-
-    public void loadLastLoggedInUser() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(LAST_LOGGED_IN_FILE))) {
-            loggedInUser = (User) ois.readObject();
-            if (loggedInUser != null) {
-                System.out.println("Welcome back, " + loggedInUser.getUsername() + "! You are logged in.");
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("No previously logged in user found.");
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("Error loading last logged in user: " + e.getMessage());
-        }
-    }
 }
 
-public class Test {
+public class mainn {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ExpenseManager expenseManager = new ExpenseManager();
@@ -225,6 +201,10 @@ public class Test {
                     default:
                         System.out.println("Invalid choice! Please try again.");
                 }
+            }
+
+            if (!expenseManager.isLoggedIn()) {
+                expenseManager.saveData();
             }
         }
     }
